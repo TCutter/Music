@@ -1,17 +1,20 @@
-import jsonp from '../common/js/jsonp'
-import {commonParams, options} from './config'
+import {commonParams} from './config'
 import axios from 'axios'
 
 export const getRecommend = () => {
-  const url = 'https://c.y.qq.com/musichall/fcgi-bin/fcg_yqqhomepagerecommend.fcg'
+  const url = '/api/getRecommend'
 
   const data = Object.assign({}, commonParams, {
     platform: 'h5',
     uin: 0,
     needNewCode: 1
   })
-
-  return jsonp(url, data, options)
+  return axios
+    .get(url, {params: data})
+    .then(res => {
+      // return Promise.resolve(res.data) 结果相同，不知道有什么区别
+      return res.data
+  })
 }
 
 export function getDiscList () {
@@ -28,10 +31,12 @@ export function getDiscList () {
     rnd: Math.random(),
     format: 'json'
   })
-
-  return axios.get(url, {
-    params: data
-  }).then((res) => {
-    return Promise.resolve(res.data)
+  
+  return axios
+    .get(url, {params: data})
+    .then((res) => {
+      console.log(res)
+      // return Promise.resolve(res.data)
+      return res.data
   })
 }

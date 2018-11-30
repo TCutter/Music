@@ -10,7 +10,7 @@ module.exports = {
     // Paths
     assetsSubDirectory: 'static',
     assetsPublicPath: '/',
-    proxyTable: {},
+    proxyTable:  require('../build/proxyTable'), // 可在此设置跨域
 
     // Various Dev Server settings
     host: 'localhost', // can be overwritten by process.env.HOST
