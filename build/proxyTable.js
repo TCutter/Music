@@ -15,7 +15,6 @@ module.exports = {
   },
   '/api/getDiscList': {
     target: 'https://c.y.qq.com/splcloud/fcgi-bin/fcg_get_diss_by_tag.fcg',
-    // target: 'https://c.y.qq.com/splcloud/fcgi-bin/p.fcg',
     bypass: function (req, res, proxyOptions) {
       // 设置请求头
       req.headers.referer = 'https://c.y.qq.com/',
@@ -24,6 +23,13 @@ module.exports = {
     changeOrigin: true,
     pathRewrite: {
       '^/api/getDiscList': ''
+    } 
+  },
+  '/api/getSingerList': {
+    target: 'https://c.y.qq.com/v8/fcg-bin/v8.fcg',   
+    changeOrigin: true,
+    pathRewrite: {
+      '^/api/getSingerList': ''
     } 
   }
 }
