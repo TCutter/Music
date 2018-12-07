@@ -92,9 +92,12 @@ export default {
       this.currentIndex = listHeight.length - 2
     },
     diff (newVal) {
-      if (newVal > 0 && newVal < FIXED_HEIGHT) {
-        this.$refs.fixedList.style.transform = `translate(0, ${newVal - FIXED_HEIGHT}px)`
-      }
+      let offsetTop = (newVal > 0 && newVal < FIXED_HEIGHT) ? newVal - FIXED_HEIGHT : 0
+      if (offsetTop === this.offsetTop) return
+
+      this.offsetTop = offsetTop
+      console.log(offsetTop)
+      this.$refs.fixedList.style.transform = `translate(0, ${offsetTop}px)`
     }
   },
   created () {
