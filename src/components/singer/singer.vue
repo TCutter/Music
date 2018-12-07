@@ -1,6 +1,6 @@
 <template>
   <div class="singer">
-    歌手界面
+    <listview :data="singers"></listview>
   </div>
 </template>
 
@@ -8,11 +8,15 @@
 import {getSingerList} from '@/api/singer'
 import {ERR_OK} from '@/api/config'
 import Singer from '@/common/js/singer'
+import listview from '@/base/ListView'
 
 const HOT_NAME = '热门'
 const HOT_SINGER_LEN = 10
 
 export default {
+    components: {
+      listview
+    },
     data () {
       return {
         singers: []
@@ -25,8 +29,7 @@ export default {
       _getSingerList () {
         getSingerList().then(res => {
           if (res.code === ERR_OK) {
-            this.singers = res.data.list
-            this._normalizeSinger()
+            this.singers = this._normalizeSinger(res.data.list) 
           }
         })
       },
@@ -37,7 +40,7 @@ export default {
             items: []
           }
         }
-        this.singers.forEach((item, index) => {
+        list.forEach((item, index) => {
           if (item.Fsinger_name.includes('薛')) return
           let singer = new Singer({
             id: item.Fsinger_mid,
@@ -49,6 +52,7 @@ export default {
           }
 
           let key = item.Findex
+          if (!(/[a-z]/i).test(key)) return
           if (!map[key]) {
             map[key] = {
               title: key,
@@ -57,7 +61,12 @@ export default {
           }
           map[key].items.push(singer)
         })
-        console.log(map)
+        let arr = Object.values(map)
+        arr.sort((a, b) => {
+          return a.title.charCodeAt(0) - b.title.charCodeAt(0)
+        })
+        arr.unshift(arr.pop())
+        return arr
       }
     }
 }
