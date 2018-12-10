@@ -24,7 +24,7 @@
       <div class="song-list-wrapper">
         <songlist :songs="songs"></songlist>
       </div>
-      <div class="loading-container" v-if="songs.length">
+      <div class="loading-container" v-if="songs.length===0">
         <loading></loading>
       </div>
     </scroll>
