@@ -19,7 +19,7 @@ export default {
       },
       data: {
         type: Array,
-        default: () => []
+        default: null
       },
       listenScroll: {
         type: Boolean,
@@ -41,27 +41,24 @@ export default {
           click: this.click
         })
 
-        var self = this
         if (this.listenScroll) {
-          self.scroll.on('scroll', pos => {
+          let self = this
+          self.scroll.on('scroll', (pos) => {
             self.$emit('scroll', pos)
           })
         }
       },
       enable () {
-        return this.scroll && this.scroll.enable()
+        this.scroll && this.scroll.enable()
       },
       disable () {
-        return this.scroll && this.scroll.disable()
+        this.scroll && this.scroll.disable()
       },
       refresh () {
-        return this.scroll && this.scroll.refresh()
-      },
-      scrollTo () {
-        return this.scroll && this.scroll.scrollTo.apply(this.scroll, arguments)
+        this.scroll && this.scroll.refresh()
       },
       scrollToElement () {
-        return this.scroll && this.scroll.scrollToElement.apply(this.scroll, arguments)
+        this.scroll && this.scroll.scrollToElement.apply(this.scroll, arguments)
       }
     },
     watch: {

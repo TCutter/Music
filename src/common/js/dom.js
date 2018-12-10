@@ -11,10 +11,11 @@ export function hasClass (el, className) {
   return reg.test(el.className)
 }
 
-export function getData (el, name, val) {
+export function getData (el, name, value) {
   name = 'data-' + name
-  if (val) {
-    return el.setAttribute(name, val)
+
+  if (value) {
+    el.setAttribute(name, value)
   } else {
     return el.getAttribute(name)
   }

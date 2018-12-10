@@ -7,7 +7,7 @@
   @scroll="scroll"
   ref="listView">
     <ul>
-      <li v-for="(group, index) in data" :key="index" class="list-group" ref="listGroup">
+      <li v-for="group in data" :key="group.id" class="list-group" ref="listGroup">
         <h2 class="list-group-title">{{group.title}}</h2>
         <ul>
           <li v-for="item in group.items" :key="item.id" class="list-group-item" @click="selectItem(item)">
@@ -17,10 +17,11 @@
         </ul>
       </li>
     </ul>
-    <div class="list-shortcut" @touchstart="onShortcutTouchStart" @touchmove="onShortcutTouchMove">
+    <div class="list-shortcut" @touchstart="onTouchStart" @touchmove="onTouchMove">
       <ul>
-        <li v-for="(item, index) in shortcutList" :key="index" class="item" :class="{current: index==currentIndex}" :data-index="index">
-          {{item}}
+        <li class="item" v-for="(shortcut, index) in shortcutList" :key="index" :class="{current: currentIndex===index}"
+          :data-index="index">
+          {{shortcut}}
         </li>
       </ul>
     </div>
@@ -42,11 +43,28 @@ const ANCHOR_HEIGHT = 18
 const TITLE_HEIGHT = 30
 
 export default {
-    props: {
-      data: {
-        type: Array,
-        default: () => []
-      }
+  components: {
+    scroll,
+    loading
+  },
+  props: {
+    data: {
+      type: Array,
+      default: () => {}
+    }
+  },
+  data () {
+    return {
+      currentIndex: 0,
+      scrollY: -1,
+      diff: -1
+    }
+  },
+  computed: {
+    shortcutList () {
+      return this.data.map((item) => {
+        return item.title.slice(0, 1)
+      })
     },
     data () {
       return {
@@ -62,18 +80,25 @@ export default {
         if (this.scrollY > 0) return ''
         return this.data[this.currentIndex] ? this.data[this.currentIndex].title : ''
       }
+    }
+  },
+  watch: {
+    data () { // 初始化的时候不走 watch
+      this.$nextTick(() => {
+        this._calculateHeight()
+      })
     },
-    watch: {
-      data () {
-        this.$nextTick(() => {
-          this._calculateHeight()
-        })
-      },
-      scrollY (newY) {
-        const listHeight = this.listHeight
-        // 当滚动到顶部，newY>0
-        if (newY > 0) {
-          this.currentIndex = 0
+    scrollY (newVal) {
+      if (newVal > 0) {
+        this.currentIndex = 0
+        return
+      }
+
+      const listHeight = this.listHeight
+      for (var j = 0, len = listHeight.length; j < len - 1; j++) {
+        if (-newVal >= listHeight[j] && -newVal < listHeight[j + 1]) {
+          this.currentIndex = j
+          this.diff = listHeight[j + 1] + newVal
           return
         }
         // 在中间部分滚动
@@ -102,11 +127,17 @@ export default {
       scroll,
       loading
     },
-    created () {
-      this.touch = {} // 如果将数据写到 data/props/computed 中，那么 Vue 会监听数据的变化，而该数据不需要被监听
-      this.listenScroll = true
-      this.probeType = 3
-      this.listHeight = []
+    _scrollTo (index) {
+      if (!index && index !== 0) return
+
+      if (index < 0) {
+        index = 0
+      } else if (index > this.listHeight.length - 2) {
+        index = this.listHeight.length - 2
+      }
+
+      this.scrollY = -this.listHeight[index]
+      this.$refs.scroll.scrollToElement(this.$refs.listGroup[index], 0)     
     },
     methods: {
       selectItem (item) {
@@ -115,48 +146,18 @@ export default {
       onShortcutTouchStart (e) {
         let anchorIndex = getData(e.target, 'index')
 
-        this.touch.y1 = e.touches[0].pageY
-        this.touch.anchorIndex = parseInt(anchorIndex)
-        this._scrollTo(anchorIndex)        
-      },
-      onShortcutTouchMove (e) {
-        this.touch.y2 = e.touches[0].pageY
-        let delta = (this.touch.y2 - this.touch.y1) / ANCHOR_HEIGHT | 0
-        let anchorIndex = this.touch.anchorIndex + delta
-        this._scrollTo(anchorIndex)
-      },
-      scroll (pos) {
-        this.scrollY = pos.y
-      },
-      _calculateHeight () {
-        this.listHeight = []
-        const list = this.$refs.listGroup
-        let height = 0
+      for (let i = 0, len = listGroup.length; i < len; i++) {
+        height += listGroup[i].clientHeight
         this.listHeight.push(height)
-        for (let i = 0; i < list.length; i++) {
-          let item = list[i]
-          height += item.clientHeight
-          this.listHeight.push(height)
-        }
-      },
-      _scrollTo (index) {
-        if (!index && index !== 0) {
-          return
-        }
-        if (index < 0) {
-          index = 0
-        } else if (index > this.listHeight.length - 2) {
-          index = this.listHeight.length - 2
-        }
-        this.scrollY = -this.listHeight[index]
-        this.$refs.listView.scrollToElement(this.$refs.listGroup[index], 0)
       }
     }
+
+  }
 }
 </script>
 
 <style lang="stylus" scoped>
-  @import "../common/stylus/variable"
+@import "../common/stylus/variable"
 
   .listview
     position: relative

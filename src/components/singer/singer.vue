@@ -16,6 +16,9 @@ const HOT_NAME = '热门'
 const HOT_SINGER_LEN = 10
 
 export default {
+    components: {
+      listview
+    },
     data () {
       return {
         singers: []
@@ -23,9 +26,6 @@ export default {
     },
     created () {
       this._getSingerList()
-    },
-    components: {
-      listview
     },
     methods: {
       selectSinger (singer) {
@@ -41,8 +41,8 @@ export default {
       },
       _getSingerList () {
         getSingerList().then(res => {
-          if (res.code === ERR_OK) { 
-            this.singers = this._normalizeSinger(res.data.list)
+          if (res.code === ERR_OK) {
+            this.singers = this._normalizeSinger(res.data.list) 
           }
         })
       },
