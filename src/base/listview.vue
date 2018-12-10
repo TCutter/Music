@@ -2,15 +2,15 @@
   <scroll 
   class="listview" 
   :data="data"
-  :listenScroll="listenScroll"
-  :probeType="probeType"
+  :listen-scroll="listenScroll"
+  :probe-type="probeType"
   @scroll="scroll"
   ref="listView">
     <ul>
       <li v-for="(group, index) in data" :key="index" class="list-group" ref="listGroup">
         <h2 class="list-group-title">{{group.title}}</h2>
         <ul>
-          <li v-for="item in group.items" :key="item.id" class="list-group-item">
+          <li v-for="item in group.items" :key="item.id" class="list-group-item" @click="selectItem(item)">
             <img v-lazy="item.avatar" class="avatar">
             <span class="name">{{item.name}}</span>
           </li>
@@ -24,14 +24,22 @@
         </li>
       </ul>
     </div>
+    <div class="list-fixed" v-show="fixedTitle" ref="fixed">
+      <div class="fixed-title">{{fixedTitle}}</div>
+    </div>
+    <div class="loading-container" v-if="data.length===0">
+        <loading></loading>
+    </div>
   </scroll>
 </template>
 
 <script>
 import scroll from './scroll'
+import loading from './loading'
 import {getData} from '@/common/js/dom'
 
 const ANCHOR_HEIGHT = 18
+const TITLE_HEIGHT = 30
 
 export default {
     props: {
@@ -49,6 +57,10 @@ export default {
     computed: {
       shortcutList () {
         return this.data.map(item => item.title.slice(0, 1))
+      },
+      fixedTitle () {
+        if (this.scrollY > 0) return ''
+        return this.data[this.currentIndex] ? this.data[this.currentIndex].title : ''
       }
     },
     watch: {
@@ -76,10 +88,19 @@ export default {
         }
         // 当滚动到底部，且-newY大于最后一个元素的上限
         this.currentIndex = listHeight.length - 2
-      }
+      },
+      diff (newVal) {
+        let fixedTop = (newVal > 0 && newVal < TITLE_HEIGHT) ? newVal - TITLE_HEIGHT : 0
+        if (this.fixedTop === fixedTop) {
+          return 
+        }
+        this.fixedTop = fixedTop
+        this.$refs.fixed.style.transform = `translate3d(0, ${fixedTop}px, 0)`
+     }
     },
     components: {
-      scroll
+      scroll,
+      loading
     },
     created () {
       this.touch = {} // 如果将数据写到 data/props/computed 中，那么 Vue 会监听数据的变化，而该数据不需要被监听
@@ -88,6 +109,9 @@ export default {
       this.listHeight = []
     },
     methods: {
+      selectItem (item) {
+        this.$emit('select', item)
+      },
       onShortcutTouchStart (e) {
         let anchorIndex = getData(e.target, 'index')
 

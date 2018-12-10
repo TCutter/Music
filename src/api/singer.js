@@ -20,3 +20,23 @@ export const getSingerList = () => {
     params: data
   }).then(res => res.data)
 }
+
+export const getSingerDetail = (id) => {
+  const url = '/api/getSingerDetail'
+
+  const data = Object.assign({}, commonParams, {
+    hostUin: 0,
+    needNewCode: 0,
+    platform: 'yqq',
+    order: 'listen',
+    begin: 0,
+    num: 100,
+    songstatus: 1,
+    singermid: id,
+    g_tk: 5381
+  })
+
+  return axios.get(url, {
+    params: data
+  }).then(res => res.data)
+}
