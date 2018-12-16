@@ -22,7 +22,7 @@
     @scroll="scroll"
     ref="list">
       <div class="song-list-wrapper">
-        <songlist :songs="songs"></songlist>
+        <songlist :songs="songs" @select="selectItem"></songlist>
       </div>
       <div class="loading-container" v-if="songs.length===0">
         <loading></loading>
@@ -36,6 +36,7 @@ import scroll from '@/base/scroll'
 import loading from '@/base/loading'
 import songlist from '@/components/song-list/song-list'
 import {prefixStyle} from '@/common/js/dom'
+import {mapActions} from 'vuex'
 
 const RESERVERD_HEIGHT = 40
 const transform = prefixStyle('transform') // css loder 会自动帮我们做自适应，而 js 需要手动写
@@ -77,7 +78,6 @@ export default {
 
       const percent = Math.abs(newY / this.imageHeight)
       if (newY > 0) {
-        console.log(newY)
         scale += percent
         zIndex = 10
       } else {
@@ -121,7 +121,16 @@ export default {
     },
     scroll (pos) {
       this.scrollY = pos.y
-    }
+    },
+    selectItem (item, index) {
+      this.selectPlay({
+        list: this.songs,
+        index
+      })
+    },
+    ...mapActions([
+      'selectPlay'
+    ])
   }
 }
 </script>
