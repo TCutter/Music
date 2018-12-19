@@ -28,3 +28,9 @@ For a detailed explanation on how things work, check out the [guide](http://vuej
 - `sequenceList: []` // 顺序歌曲列表
 - `mode: Enum` // 播放模式
 - `currentIndex: -1` // 当前歌曲的索引
+
+## QQ 音乐接口整理
+- 推荐列表：`https://c.y.qq.com/musichall/fcgi-bin/fcg_yqqhomepagerecommend.fcg`
+- 歌单列表：`https://c.y.qq.com/splcloud/fcgi-bin/fcg_get_diss_by_tag.fcg`
+- 歌手列表：`https://c.y.qq.com/v8/fcg-bin/v8.fcg`
+- 歌手详情：`https://c.y.qq.com/v8/fcg-bin/fcg_v8_singer_track_cp.fcg`

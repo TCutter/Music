@@ -38,5 +38,12 @@ module.exports = {
     pathRewrite: {
       '^/api/getSingerDetail': ''
     } 
+  },
+  '/api/getSongVkey': {
+    target: 'https://c.y.qq.com/base/fcgi-bin/fcg_music_express_mobile3.fcg',   
+    changeOrigin: true,
+    pathRewrite: {
+      '^/api/getSongVkey': ''
+    } 
   }
 }

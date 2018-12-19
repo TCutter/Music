@@ -40,3 +40,24 @@ export const getSingerDetail = (id) => {
     params: data
   }).then(res => res.data)
 }
+
+export const getSongVkey = (id) => {
+  const url = '/api/getSongVkey'
+
+  const data = Object.assign({}, commonParams, {
+    hostUin: 0,
+    needNewCode: 0,
+    platform: 'yqq',
+    notice: 0,
+    g_tk: 678733985,
+    cid: 205361747,
+    jsonpCallback: 'MusicJsonCallback8015407264426806',
+    songmid: id,
+    filename: `C100${id}.m4a`,
+    guid: 1674273789
+  })
+
+  return axios.get(url, {
+    params: data
+  }).then(res => res.data)
+}
