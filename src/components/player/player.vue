@@ -26,18 +26,23 @@
           </div>
         </div>
         <div class="bottom">
+          <div class="progress-wrapper">
+            <span class="time time-l">{{currentTime | formatTime}}</span>
+            <div class="progress-bar-wrapper"></div>
+            <span class="time time-r">{{currentSong.duration | formatTime}}</span>
+          </div>
           <div class="operators">
             <div class="icon i-left">
               <span class="icon-sequence"></span>
             </div>
-            <div class="icon i-left">
-              <span class="icon-prev"></span>
+            <div class="icon i-left" :class="disableCls">
+              <span @click.stop="prev" class="icon-prev"></span>
             </div>
-            <div class="icon i-center">
+            <div class="icon i-center" :class="disableCls">
               <span @click.stop="togglePlaying" :class="playIcon"></span>
             </div>
-            <div class="icon i-right">
-              <span class="icon-next"></span>
+            <div class="icon i-right" :class="disableCls">
+              <span @click.stop="next" class="icon-next"></span>
             </div>
             <div class="icon i-right">
               <span class="icon-not-favorite"></span>
@@ -63,7 +68,13 @@
         </div>
       </div>
     </transition>
-    <audio ref="audio" :src="currentSong.url"></audio>
+    <audio 
+    ref="audio" 
+    :src="currentSong.url"
+    @canplay="ready"
+    @error="error"
+    @timeupdate="updateTime"
+    ></audio>
   </div>
 </template>
 
@@ -72,7 +83,16 @@ import {mapGetters, mapMutations} from 'vuex'
 import animations from 'create-keyframe-animation'
 
 export default {
+  data () {
+    return {
+      isReady: false,
+      currentTime: 0
+    }
+  },
   computed: {
+    disableCls () {
+      return this.isReady ? '' : 'disable'
+    },
     cdCls () {
       return this.playing ? 'play' : 'play pause'
     },
@@ -86,13 +106,29 @@ export default {
       'fullScreen',
       'playList',
       'currentSong',
-      'playing'
+      'playing',
+      'currentIndex'
     ])
   },
   watch: {
+    currentSong () {
+      this.$nextTick(() => {
+        this.$refs.audio.play()        
+      })
+    },
     playing (state) {
-      const audio = this.refs.audio
-      return state ? audio.play() : audio.pause()
+      this.$nextTick(() => {
+        const audio = this.$refs.audio
+        return state ? audio.play() : audio.pause()
+      })      
+    }
+  },
+  filters: {
+    formatTime (interval) {
+      interval = interval | 0
+      let minute = interval / 60 | 0
+      let second = (interval % 60).toString().padStart(2, '0')
+      return `${minute}:${second}`
     }
   },
   methods: {
@@ -161,6 +197,41 @@ export default {
       animations.unregisterAnimation('leave')
       this.$refs.cdWrapper.style.animation = ''
     },
+    prev () {
+      if (!this.isReady) return
+      let index = this.currentIndex + 1
+      if (index === this.playList.length) {
+        index = 0
+      }
+
+      this.setCurrentIndex(index)
+      if (!this.playing) {
+        this.togglePlaying()
+      }
+      this.isReady = false
+    },
+    next () {
+      if (!this.isReady) return
+      let index = this.currentIndex - 1
+      if (index === -1) {
+        index = this.playList.length - 1
+      }
+
+      this.setCurrentIndex(index)
+      if (!this.playing) {
+        this.togglePlaying()
+      }
+      this.isReady = false
+    },
+    ready () {
+      this.isReady = true
+    },
+    error () {
+      this.isReady = true
+    },
+    updateTime (e) {
+      this.currentTime = e.target.currentTime
+    },
     _getPosAndScale () {
       const miniLeft = 40
       const miniBottom = 30
@@ -183,7 +254,8 @@ export default {
     },
     ...mapMutations({
       setFullScreen: 'SET_FULL_SCREEN',
-      setPlayingState: 'SET_PLAYING_STATE'
+      setPlayingState: 'SET_PLAYING_STATE',
+      setCurrentIndex: 'SET_CURRENT_INDEX'
     })
   }
 }
