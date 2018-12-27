@@ -1,3 +1,5 @@
+import {getLyric} from '@/api/song'
+
 export default class Song {
   constructor ({id, mid, singer, name, album, duration, img, url}) {
     this.id = id
@@ -8,6 +10,18 @@ export default class Song {
     this.duration = duration
     this.img = img
     this.url = url
+  }
+
+  getLyric () {
+    if (this.lyric) {
+      return Promise.resolve(this.lyric)
+    }
+    return new Promise((resolve) => {
+      getLyric(this.mid).then(res => {
+        this.lyric = res
+        resolve(this.lyric)
+      })
+    })
   }
 }
 

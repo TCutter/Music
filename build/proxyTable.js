@@ -38,5 +38,12 @@ module.exports = {
     pathRewrite: {
       '^/api/getSingerDetail': ''
     } 
+  },
+  '/api/getLyric': {
+    target: ' https://api.bzqll.com/music/tencent/lrc',   
+    changeOrigin: true,
+    pathRewrite: {
+      '^/api/getLyric': ''
+    } 
   }
 }

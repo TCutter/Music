@@ -35,5 +35,6 @@ For a detailed explanation on how things work, check out the [guide](http://vuej
 - 歌手列表：`https://c.y.qq.com/v8/fcg-bin/v8.fcg`
 - 歌手详情：`https://c.y.qq.com/v8/fcg-bin/fcg_v8_singer_track_cp.fcg`
 - 歌曲播放地址：`https://api.bzqll.com/music/tencent/url?key=579621905&id=${musicData.songmid}&br=192`
+- 歌词地址： `https://api.bzqll.com/music/tencent/lrc?key=579621905&id=${musicData.songmid}`
 
 > 网上常用的通过获取 vkey 的方法拼接播放地址行不通。因此找了一个新的方法，只需要 songmid 即可调用，具体使用方法参照 [网易云音乐/QQ音乐API更新](https://www.bzqll.com/2018/10/39.html)

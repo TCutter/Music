@@ -16,6 +16,7 @@
     "create-keyframe-animation": "^0.1.0",
     "element-ui": "^2.4.11",
     "fastclick": "^1.0.6",
+    "lyric-parser": "^1.0.1",
     "vue": "^2.5.2",
     "vue-lazyload": "^1.2.6",
     "vue-router": "^3.0.1",

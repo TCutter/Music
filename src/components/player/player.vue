@@ -17,25 +17,36 @@
           <h2 class="subtitle" v-html="currentSong.singer"></h2>
         </div>
         <div class="middle">
-          <div class="middle-l">
+          <div class="middle-l" style="display:none">
             <div class="cd-wrapper" ref="cdWrapper">
               <div class="cd" :class="cdCls">
                 <img class="image" :src="currentSong.img">
               </div>
             </div>
           </div>
+          <scroll class="middle-r" ref="lyricList" :data="currentLyric && currentLyric.lines">
+            <div class="lyric-wrapper">
+              <div v-if="currentLyric">
+                <p 
+                ref="lyricLine" 
+                class="text"
+                :class="{current: currentLineNum===index}"
+                v-for="(line, index) in currentLyric.lines" :key="index">{{line.txt}}</p>
+              </div>
+            </div>
+          </scroll>
         </div>
         <div class="bottom">
           <div class="progress-wrapper">
             <span class="time time-l">{{currentTime | formatTime}}</span>
             <div class="progress-bar-wrapper">
-              <progressbar :percent="percent"></progressbar>
+              <progressbar :percent="percent" @percentchange="onProgressBarChange"></progressbar>
             </div>
             <span class="time time-r">{{currentSong.duration | formatTime}}</span>
           </div>
           <div class="operators">
             <div class="icon i-left">
-              <span class="icon-sequence"></span>
+              <span @click.stop="changeMode" :class="iconMode" ></span>
             </div>
             <div class="icon i-left" :class="disableCls">
               <span @click.stop="prev" class="icon-prev"></span>
@@ -63,7 +74,9 @@
           <p class="desc" v-html="currentSong.singer"></p>
         </div>
         <div class="control">
-          <span @click.stop="togglePlaying" :class="playMiniIcon"></span>
+          <progresscircle :radius="32" :percent="percent">
+            <span @click.stop="togglePlaying" :class="playMiniIcon" class="icon-mini"></span>
+          </progresscircle>
         </div>
         <div class="control">
           <span class="icon-playlist"></span>
@@ -76,6 +89,7 @@
     @canplay="ready"
     @error="error"
     @timeupdate="updateTime"
+    @ended="end"
     ></audio>
   </div>
 </template>
@@ -84,15 +98,24 @@
 import {mapGetters, mapMutations} from 'vuex'
 import animations from 'create-keyframe-animation'
 import ProgressBar from '@/components/progress-bar/progress-bar'
+import ProgressCircle from '@/components/progress-circle/progress-circle'
+import {playMode} from '@/common/js/config'
+import {shuffle} from '@/common/js/utils'
+import Lyric from 'lyric-parser'
+import Scroll from '@/base/scroll'
 
 export default {
   components: {
-    'progressbar': ProgressBar
+    progressbar: ProgressBar,
+    progresscircle: ProgressCircle,
+    scroll: Scroll
   },
   data () {
     return {
       isReady: false,
-      currentTime: 0
+      currentTime: 0,
+      currentLyric: null,
+      currentLineNum: 0
     }
   },
   computed: {
@@ -111,19 +134,33 @@ export default {
     playMiniIcon () {
       return this.playing ? 'icon-pause-mini' : 'icon-play-mini'
     },
+    iconMode () {
+      if (this.mode === playMode.sequence) {
+        return 'icon-sequence'
+      } else if (this.mode === playMode.loop) {
+        return 'icon-loop'
+      } else {
+        return 'icon-random'
+      }
+    },
     ...mapGetters([
       'fullScreen',
       'playList',
+      'sequenceList',
       'currentSong',
       'playing',
-      'currentIndex'
+      'currentIndex',
+      'mode'
     ])
   },
   watch: {
-    currentSong () {
-      this.$nextTick(() => {
-        this.$refs.audio.play()        
-      })
+    currentSong (newSong, oldSong) {
+      if (newSong.id !== oldSong.id) {
+        this.$nextTick(() => {
+          this.$refs.audio.play()
+          this.getLyric()
+        })
+      }
     },
     playing (state) {
       this.$nextTick(() => {
@@ -141,6 +178,14 @@ export default {
     }
   },
   methods: {
+    getLyric () {
+      this.currentSong.getLyric().then(lyric => {
+        this.currentLyric = new Lyric(lyric, this._handleLyric)
+        if (this.playing) {
+          this.currentLyric.play()
+        }
+      })
+    },
     back () {
       this.setFullScreen(false)
     },
@@ -232,6 +277,10 @@ export default {
       }
       this.isReady = false
     },
+    loop () {
+      this.$refs.audio.currentTime = 0
+      this.$refs.audio.play()
+    },
     ready () {
       this.isReady = true
     },
@@ -240,6 +289,13 @@ export default {
     },
     updateTime (e) {
       this.currentTime = e.target.currentTime
+    },
+    end () {
+      if (this.mode === playMode.loop) {
+        this.loop()
+      } else {
+        this.next()
+      }
     },
     _getPosAndScale () {
       const miniLeft = 40
@@ -258,13 +314,51 @@ export default {
         scale
       }
     },
+    _handleLyric ({lineNum, txt}) {
+      this.currentLineNum = lineNum
+      if (lineNum > 5) {
+        let lineEl = this.$refs.lyricLine[lineNum - 5]      
+        this.$refs.lyricList.scrollToElement(lineEl, 1000)
+      } else {
+        this.$refs.lyricList.scrollTo(0, 0, 1000)         
+      }
+    },
+    _resetCurrentIndex (list) {
+      let index = list.findIndex((item) => {
+        return item.id === this.currentSong.id
+      })
+      this.setCurrentIndex(index)
+    },
     togglePlaying () {
       this.setPlayingState(!this.playing)
+    },
+    changeMode () {
+      const mode = (this.mode + 1) % 3
+      this.setPlayMode(mode)
+
+      let list = null
+      if (this.mode === playMode.sequence) {
+        list = this.sequenceList
+      } else if (this.mode === playMode.random) {
+        list = shuffle(this.sequenceList)
+      } else {
+        return
+      }
+      this._resetCurrentIndex(list)
+      this.setPlayList(list)
+    },
+    onProgressBarChange (percent) {
+      this.$refs.audio.currentTime = this.currentSong.duration * percent
+      if (!this.playing) {
+        this.togglePlaying()
+      }
     },
     ...mapMutations({
       setFullScreen: 'SET_FULL_SCREEN',
       setPlayingState: 'SET_PLAYING_STATE',
-      setCurrentIndex: 'SET_CURRENT_INDEX'
+      setCurrentIndex: 'SET_CURRENT_INDEX',
+      setPlayMode: 'SET_PLAY_MODE',
+      setPlayList: 'SET_PLAYLIST'
     })
   }
 }

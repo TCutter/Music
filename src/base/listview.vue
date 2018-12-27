@@ -91,7 +91,6 @@ export default {
       let offsetTop = (newVal > 0 && newVal < FIXED_HEIGHT) ? newVal - FIXED_HEIGHT : 0
       if (offsetTop === this.offsetTop) return
       this.offsetTop = offsetTop
-      console.log(offsetTop)
       this.$refs.fixedList.style.transform = `translate(0, ${offsetTop}px)`
     }
   },
