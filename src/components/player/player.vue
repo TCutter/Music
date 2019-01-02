@@ -16,8 +16,12 @@
           <h1 class="title" v-html="currentSong.name"></h1>
           <h2 class="subtitle" v-html="currentSong.singer"></h2>
         </div>
-        <div class="middle">
-          <div class="middle-l" style="display:none">
+        <div 
+        class="middle"
+        @touchstart="toggleStart"
+        @touchmove="toggleMove"
+        @touchend="toggleEnd">
+          <div class="middle-l">
             <div class="cd-wrapper" ref="cdWrapper">
               <div class="cd" :class="cdCls">
                 <img class="image" :src="currentSong.img">
@@ -37,6 +41,10 @@
           </scroll>
         </div>
         <div class="bottom">
+          <div class="dot-wrapper">
+            <span class="dot" :class="{active: currentShowType==='cd'}"></span>
+            <span class="dot" :class="{active: currentShowType==='lyric'}"></span>
+          </div>
           <div class="progress-wrapper">
             <span class="time time-l">{{currentTime | formatTime}}</span>
             <div class="progress-bar-wrapper">
@@ -103,6 +111,10 @@ import {playMode} from '@/common/js/config'
 import {shuffle} from '@/common/js/utils'
 import Lyric from 'lyric-parser'
 import Scroll from '@/base/scroll'
+import {prefixStyle} from '@/common/js/dom'
+
+const transform = prefixStyle('transform')
+const transitionDuration = prefixStyle('transitionDuration')
 
 export default {
   components: {
@@ -115,7 +127,8 @@ export default {
       isReady: false,
       currentTime: 0,
       currentLyric: null,
-      currentLineNum: 0
+      currentLineNum: 0,
+      currentShowType: 'cd'
     }
   },
   computed: {
@@ -177,7 +190,67 @@ export default {
       return `${minute}:${second}`
     }
   },
+  created () {
+    this.touch = {}
+  },
   methods: {
+    toggleStart (e) {
+      this.touch.initialized = true
+      let touch = e.touches[0]
+      this.touch.startX = touch.pageX
+      this.touch.startY = touch.pageY
+      this.touch.moved = false
+    },
+    toggleMove (e) {
+      if (!this.touch.initialized) return
+      let touch = e.touches[0]
+      let diffX = touch.pageX - this.touch.startX
+      let diffY = touch.pageY - this.touch.startY
+      if (Math.abs(diffX) < Math.abs(diffY)) return
+      if (!this.touch.moved) this.touch.moved = true
+
+      const left = this.currentShowType === 'cd' ? 0 : -window.innerWidth
+      const offsetWidth = Math.min(0, Math.max(-window.innerWidth, left + diffX))
+      this.touch.percent = Math.abs(offsetWidth / window.innerWidth)
+      console.log(`this.touch.percent = ${this.touch.percent}`)
+
+      this.$refs.cdWrapper.style.opacity = 1 - this.touch.percent
+      this.$refs.cdWrapper.style[transitionDuration] = 0
+      this.$refs.lyricList.$el.style[transform] = `translate3d(${offsetWidth}px, 0, 0)`
+      this.$refs.lyricList.$el.style[transitionDuration] = 0
+    },
+    toggleEnd (e) {
+      if (!this.touch.moved) return      
+
+      let offsetWidth
+      let opacity
+      if (this.currentShowType === 'cd') {
+        if (this.touch.percent > 0.1) {
+          offsetWidth = -window.innerWidth
+          opacity = 0
+          this.currentShowType = 'lyric'
+        } else {
+          offsetWidth = 0
+          opacity = 1
+        }
+      } else {
+        if (this.touch.percent < 0.9) {
+            offsetWidth = 0
+            opacity = 1
+            this.currentShow = 'cd'
+        } else {
+          offsetWidth = -window.innerWidth
+          opacity = 0
+        }
+      }
+
+      let time = 300
+      this.$refs.cdWrapper.style.opacity = opacity
+      this.$refs.cdWrapper.style[transitionDuration] = `${time}ms`
+      this.$refs.lyricList.$el.style[transform] = `translate3d(${offsetWidth}px, 0, 0)`
+      this.$refs.lyricList.$el.style[transitionDuration] = `${time}ms`
+      this.touch.initialized = false
+    },
     getLyric () {
       this.currentSong.getLyric().then(lyric => {
         this.currentLyric = new Lyric(lyric, this._handleLyric)
