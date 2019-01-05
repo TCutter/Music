@@ -7,3 +7,4 @@ export const sequenceList = state => state.sequenceList
 export const mode = state => state.mode
 export const currentIndex = state => state.currentIndex
 export const currentSong = state => state.playList[state.currentIndex] || 0
+export const disc = state => state.disc

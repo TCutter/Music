@@ -32,6 +32,7 @@
 import scroll from './scroll'
 import loading from '@/base/loading'
 import {getData} from '@/common/js/dom'
+
 const ANCHOR_HEIGHT = 18
 const FIXED_HEIGHT = 30
 export default {
@@ -101,6 +102,9 @@ export default {
     this.listenScroll = true
   },
   methods: {
+    refresh () {
+      this.$refs.scroll.refresh()
+    },
     selectItem (item) {
       this.$emit('select', item)
     },

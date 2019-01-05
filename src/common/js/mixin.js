@@ -1,6 +1,6 @@
 import {mapGetters} from 'vuex'
 
-export const platListMxin = {
+export const playListMixin = {
   computed: {
     ...mapGetters([
       'playList'
@@ -18,8 +18,8 @@ export const platListMxin = {
     this.handlePlayList(this.playList)
   },
   methods: {
-    handlePlayList (list) {
-
+    handlePlayList () {
+      throw new Error('components must implement handlePlayList method')
     }
   }
 }

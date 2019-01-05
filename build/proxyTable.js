@@ -2,7 +2,8 @@
  * 
  * target: 真实的请求值
  * bypass: 请求之前的相关配置
- * pathRewrite: 设置前缀,如果不进行配置那么代理的 url 会变成 target + '/api/getRecommend' + data
+ * changeOrigin: 是否跨域
+ * pathRewrite: 设置前缀：如果不进行配置，那么代理的 url 会变成 target + '/api/getRecommend' + data
  */
 
 module.exports = {
@@ -11,6 +12,17 @@ module.exports = {
     changeOrigin: true,
     pathRewrite: {
       '^/api/getRecommend': ''
+    } 
+  },
+  '/api/getSongList': {
+    target: 'https://c.y.qq.com/qzone/fcg-bin/fcg_ucc_getcdinfo_byids_cp.fcg',
+    bypass: function (req, res, proxyOptions) {
+      req.headers.referer = 'https://c.y.qq.com/',
+      req.headers.host = 'c.y.qq.com'
+    }, 
+    changeOrigin: true,
+    pathRewrite: {
+      '^/api/getSongList': ''
     } 
   },
   '/api/getDiscList': {

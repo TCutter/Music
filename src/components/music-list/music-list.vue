@@ -37,12 +37,14 @@ import loading from '@/base/loading'
 import songlist from '@/components/song-list/song-list'
 import {prefixStyle} from '@/common/js/dom'
 import {mapActions} from 'vuex'
+import {playListMixin} from '@/common/js/mixin'
 
 const RESERVERD_HEIGHT = 40
 const transform = prefixStyle('transform') // css loder 会自动帮我们做自适应，而 js 需要手动写
 const backdrop = prefixStyle('backdrop-filter')
 
 export default {
+  mixins: [playListMixin],
   data () {
     return {
       scrollY: -1
@@ -130,6 +132,11 @@ export default {
     },
     random () {
       this.randomPlay(this.songs)
+    },
+    handlePlayList (list) {
+      const bottom = list.length > 0 ? '60px' : ''
+      this.$refs.list.$el.style.bottom = bottom
+      this.$refs.list.refresh()
     },
     ...mapActions([
       'selectPlay',
