@@ -52,10 +52,24 @@ module.exports = {
     } 
   },
   '/api/getLyric': {
-    target: ' https://api.bzqll.com/music/tencent/lrc',   
+    target: 'https://api.bzqll.com/music/tencent/lrc',   
     changeOrigin: true,
     pathRewrite: {
       '^/api/getLyric': ''
+    } 
+  },
+  '/api/getTopList': {
+    target: 'https://c.y.qq.com/v8/fcg-bin/fcg_myqq_toplist.fcg',   
+    changeOrigin: true,
+    pathRewrite: {
+      '^/api/getTopList': ''
+    } 
+  },
+  '/api/getMusicList': {
+    target: 'https://c.y.qq.com/v8/fcg-bin/fcg_v8_toplist_cp.fcg',   
+    changeOrigin: true,
+    pathRewrite: {
+      '^/api/getMusicList': ''
     } 
   }
 }
